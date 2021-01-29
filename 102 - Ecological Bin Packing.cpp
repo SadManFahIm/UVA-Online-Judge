@@ -1,34 +1,54 @@
-#include <string>
-#include <stdio.h>
-#include <algorithm>
-#include <iostream>
+#include <cstdio>
+#include <climits>
+#include <cstring>
 using namespace std;
 
+int main() {
+	int B[3], G[3], C[3];
 
+	while (scanf("%d %d %d %d %d %d %d %d %d", &B[0], &G[0], &C[0], &B[1],
+			&G[1], &C[1], &B[2], &G[2], &C[2]) != EOF) {
+		int min = INT_MAX, temp;
+		char ans[4];
+		//BCG
+		temp = C[0] + G[0] + B[1] + G[1] + B[2] + C[2];
+		if (temp < min) {
+			min = temp;
+			strcpy(ans, "BCG");
+		}
+		//BGC
+		temp = C[0] + G[0] + B[1] + C[1] + B[2] + G[2];
+		if (temp < min) {
+			min = temp;
+			strcpy(ans, "BGC");
+		}
+		//CBG
+		temp = B[0] + G[0] + C[1] + G[1] + B[2] + C[2];
+		if (temp < min) {
+			min = temp;
+			strcpy(ans, "CBG");
+		}
+		//CGB
+		temp = B[0] + G[0] + B[1] + C[1] + G[2] + C[2];
+		if (temp < min) {
+			min = temp;
+			strcpy(ans, "CGB");
+		}
+		//GBC
+		temp = C[0] + B[0] + C[1] + G[1] + B[2] + G[2];
+		if (temp < min) {
+			min = temp;
+			strcpy(ans, "GBC");
+		}
+		//GCB
+		temp = C[0] + B[0] + B[1] + G[1] + G[2] + C[2];
+		if (temp < min) {
+			min = temp;
+			strcpy(ans, "GCB");
+		}
 
-int main(){
-    freopen("input.txt", "r", stdin);
-    int i;
-    string s[] = {"BCG", "BGC" ,"CBG" ,"CGB" ,"GBC" ,"GCB"};
-    int moves[6];
-    int b[9];
-    int sum;
-    while(scanf("%d", &b[0])==1){
-        for(i=1;i<9;i++)scanf("%d", &b[i]);
-        sum = b[0] + b[3] + b[6]+ b[1] + b[4] + b[7]+ b[2] + b[5] + b[8];
-        moves[0] = sum - b[0] - b[5] - b[7];
-        moves[1] = sum - b[0] - b[4] - b[8];
+		printf("%s %d\n",ans,min);
+	}
 
-        moves[2] = sum - b[2] - b[3] - b[7];
-
-        moves[3] = sum - b[2] - b[4] - b[6];
-
-        moves[4] = sum - b[1] - b[3] - b[8];
-        moves[5] = sum - b[1] - b[5] - b[6];
-        int min_moves = *min_element(moves,moves+6);
-        for(i=0;i<6;i++)if(min_moves==moves[i]){cout << s[i] << " " << min_moves<<endl;break;}
-        //for(i=0;i<6;i++)cout << s[i] << " " << moves[i] << endl;
-
-    }
-    return 0;
+	return 0;
 }
