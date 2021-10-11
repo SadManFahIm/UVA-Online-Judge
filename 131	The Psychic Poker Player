@@ -1,0 +1,144 @@
+#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+static string pockersTypeArr[9] = {"straight-flush", "four-of-a-kind", "full-house", "flush",
+    "straight", "three-of-a-kind", "two-pairs", "one-pair", "highest-card"};
+static string pockerValues = "23456789TJQKA";
+static int valueIndexArr[127] = {0};
+enum EPockersType{
+    STRAIGHT_FLUSH  = 0,
+    FOUR_OF_A_KIND  = 1,
+    FULL_HOURSE     = 2,
+    FLUSH            = 3,
+    STRAIGHT        = 4,
+    THREE_OF_A_KIND = 5,
+    TWO_PAIRS        = 6,
+    ONE_PAIR        = 7,
+    HIGHEST_CARD    = 8,
+};
+
+typedef struct _Poker {
+    char value;
+    char suit;
+}Poker;
+
+vector<Poker> hand;
+vector<Poker> deck;
+
+bool Less(const Poker& first, const Poker& second) {
+    return valueIndexArr[first.value] < valueIndexArr[second.value];
+}
+int judgePockers(vector<Poker>& pockers) {
+    sort(pockers.begin(), pockers.end(), Less);
+    bool straightFlag = true;
+    bool flushFlag = true;
+    for (unsigned int i = 1; i < pockers.size(); ++i) {
+        if (valueIndexArr[pockers[i].value] - valueIndexArr[pockers[i - 1].value] != 1) {
+            straightFlag = false;
+        }
+        if (pockers[i].suit != pockers[i - 1].suit) {
+            flushFlag = false;
+        }
+    }
+    if (pockers[0].value == '2' && pockers[1].value == '3' &&
+        pockers[2].value == '4' && pockers[3].value == '5' && pockers[4].value == 'A') {
+        straightFlag = true;
+    }
+    if (straightFlag && flushFlag) {
+        return STRAIGHT_FLUSH;
+    } else if (straightFlag && !flushFlag) {
+        return STRAIGHT;
+    } else if (!straightFlag && flushFlag) {
+        return FLUSH;
+    }
+    int sameNumArr[13] = {0};
+    for (unsigned int i = 0; i < pockerValues.size(); ++i) {
+        int sameNum = 0;
+        for (unsigned int j = 0; j < pockers.size(); ++j) {
+            if (pockerValues[i] == pockers[j].value) {
+                sameNum += 1;
+            }
+        }
+        int index = valueIndexArr[(unsigned int)pockerValues[i]];
+        sameNumArr[index] = sameNum;
+    }
+    bool threeFlag = false;
+    int twoPairNum = 0;
+    for (int i = 0; i < 13; ++i) {
+        if (sameNumArr[i] == 4) {
+            return FOUR_OF_A_KIND;
+        }
+        if (sameNumArr[i] == 3) {
+            threeFlag = true;
+        }
+        if (sameNumArr[i] == 2) {
+            twoPairNum += 1;
+        }
+    }
+    if (threeFlag && twoPairNum == 1) {
+        return FULL_HOURSE;
+    } else if (threeFlag && !twoPairNum) {
+        return THREE_OF_A_KIND;
+    } else if (!threeFlag && twoPairNum == 2) {
+        return TWO_PAIRS;
+    } else if (!threeFlag && twoPairNum == 1) {
+        return ONE_PAIR;
+    } else {
+        return HIGHEST_CARD;
+    }
+    return -1;
+}
+
+void outPut(const string& initial, const string& bestHand) {
+    string hand = initial.substr(0, 15);
+    string deck = initial.substr(15, 15);
+    cout<<"Hand: "<<hand<<"Deck: "<<deck<<" "<<"Best hand: "<<bestHand<<endl;
+}
+
+void init() {
+    for (unsigned int i = 0; i < pockerValues.size(); ++i) {
+        valueIndexArr[(unsigned int)(pockerValues[i])] = i;
+    }
+}
+
+int main(int argc, const char * argv[])
+{
+    init();
+    string line;
+    while (getline(cin, line)) {
+        hand.clear();
+        deck.clear();
+        for (int i = 0; i <= 27 ; i += 3) {
+            Poker poker;
+            poker.value = line[i];
+            poker.suit = line[i + 1];
+            if (i < 15) {
+                hand.push_back(poker);
+            } else {
+                deck.push_back(poker);
+            }
+        }
+
+        vector<Poker> bestPockers(hand);
+        int bestHandType = 0;
+        for (int i = 1; i < (1 << 5); ++i) {
+            int deckIndex = 0;
+            vector<Poker> out(hand);
+            for (int j = 0; j < 5; ++j) if ((i >> j) & 0x0001) {
+                out[j] = deck[deckIndex++];
+            }
+            int outType = judgePockers(out);
+            int bestType = judgePockers(bestPockers);
+            if (outType == -1 || bestType == -1) {
+                //printf("error type\n");
+                break;
+            }
+            bestHandType = outType >= bestType ? bestType : ((bestPockers = out), outType);
+        }
+        outPut(line, pockersTypeArr[bestHandType]);
+    }
+    return 0;
+}
