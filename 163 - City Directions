@@ -1,0 +1,102 @@
+#include <iostream>
+#include <vector>
+#include <cstring>
+#include <string>
+#include <algorithm>
+#include <queue>
+#include <cstdio>
+#include <stack>
+#include <utility>
+#include <cmath>
+#include <sstream>
+using namespace std;
+typedef pair<int, int> ii;
+typedef pair<int, ii> iii;
+const int MAXN = 100;
+int elevatorCost[6];
+vector<int> floorsForElevator[6];
+int N, K;
+vector<iii> G[MAXN];
+int dist[MAXN];
+vector<int> answers;
+void read()
+{
+    memset(dist, 127, sizeof dist);
+    for(int i = 0; i < MAXN; ++i) G[i].clear();
+    for(int i = 0; i < 6; ++i) floorsForElevator[i].clear();
+    //all set
+    for(int i = 0; i < N; ++i)
+    {
+        cin >> elevatorCost[i];
+    }
+    string emptyStr;
+    getline(cin, emptyStr);
+    for(int i = 0; i < N; ++i)
+    {
+        string line;
+        getline(cin, line);
+        istringstream iss(line);
+        int floor;
+        while(iss >> floor)
+        {
+            floorsForElevator[i].push_back(floor);
+        }
+    }
+    for(int i = 0; i < N; ++i)
+    {
+        for(int j = 0; j < floorsForElevator[i].size(); ++j)
+        {
+            for(int k = j+1; k < floorsForElevator[i].size(); ++k)
+            {
+                int f1 = floorsForElevator[i][j];
+                int f2 = floorsForElevator[i][k];
+                int cost = elevatorCost[i]*(abs(f1-f2));
+                G[f1].push_back(iii(cost, ii(f2, i)));
+                G[f2].push_back(iii(cost, ii(f1, i)));
+            }
+        }
+    }
+    //now run Dijkstra
+    priority_queue<iii> Q;
+    Q.push(iii(0, ii(0, -1)));
+    dist[0] = 0;
+    while(!Q.empty())
+    {
+        iii triple = Q.top(); Q.pop();
+        int current = triple.second.first;
+        int currentElevator = triple.second.second;
+        for(int i = 0; i < G[current].size(); ++i)
+        {
+            int child = G[current][i].second.first;
+            int childElevator = G[current][i].second.second;
+            int cost = G[current][i].first;
+            if(currentElevator != childElevator && currentElevator != -1) cost += 60;
+
+            if(dist[current] + cost <= dist[child])
+            {
+                dist[child] = dist[current] + cost;
+                Q.push(iii(-dist[child], ii(child, childElevator)));
+            }
+        }
+    }
+    if(dist[K] > (1 << 20)) answers.push_back(-1);
+    else answers.push_back(dist[K]);
+}
+int main()
+{
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+    while(cin >> N)
+    {
+        cin >> K;
+        read();
+    }
+    for(int i = 0; i < answers.size(); ++i)
+    {
+        //cout<<"CASE: "<<i<<endl;
+        if(answers[i] == -1) cout<<"IMPOSSIBLE";
+        else cout<<answers[i];
+        cout<<'\n';
+    }
+    return 0;
+}
